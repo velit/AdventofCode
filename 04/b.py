@@ -32,4 +32,4 @@ with open("input.txt") as f:
     pp_strings = f.read().split("\n\n")
 
 full_pps = [parse_pp(pp) for pp in pp_strings if has_valid_fields(pp)]
-print(len([1 for pp in full_pps if validate_pp(pp)]))
+print(sum(1 for pp in full_pps if validate_pp(pp)))

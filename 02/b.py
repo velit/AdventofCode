@@ -12,4 +12,4 @@ with open("input.txt") as f:
 # Split the input lines into a, b, char and password tokens
 parsed_data = (re.split(r": |[- ]", row) for row in password_rows)
 
-print(len([1 for args in parsed_data if password_policy(*args)]))
+print(sum(1 for args in parsed_data if password_policy(*args)))

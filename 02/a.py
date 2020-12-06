@@ -8,5 +8,5 @@ with open("input.txt") as f:
 # Split the input lines into min, max char and password tokens
 parsed_data = (re.split(r": |[- ]", row) for row in password_rows)
 
-print(len([1 for (min, max, char, passw) in parsed_data
-           if int(min) <= Counter(passw)[char] <= int(max)]))
+print(sum(1 for (min, max, char, passw) in parsed_data
+           if int(min) <= Counter(passw)[char] <= int(max)))
