@@ -1,14 +1,8 @@
 #!/usr/bin/env python3
 import re
 
-with open("input.txt") as f:
-    inputs = f.read()
-
-pp_strings = inputs.split("\n\n")
-
-required_fields = "byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid"
-
 def has_valid_fields(pp_string):
+    required_fields = "byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid"
     return all(field in pp_string for field in required_fields)
 
 def parse_pp(pp_string):
@@ -33,6 +27,9 @@ def validate_pp(pp):
     validation = byr, iyr, eyr, hgt, hcl, ecl, pid
     return all(validation)
 
+
+with open("input.txt") as f:
+    pp_strings = f.read().split("\n\n")
 
 full_pps = [parse_pp(pp) for pp in pp_strings if has_valid_fields(pp)]
 print(len([1 for pp in full_pps if validate_pp(pp)]))
