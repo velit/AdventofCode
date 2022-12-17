@@ -1,3 +1,4 @@
 .ropeproject
 __pycache__
-00
+.gitignore
+.idea
