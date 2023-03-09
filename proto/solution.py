@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
-with open("input.txt") as f:
-    lines = f.read().splitlines()
+def main() -> None:
+    with open("input.txt") as f:
+        lines = f.read().splitlines()
 
-print()
+if __name__ == "__main__":
+    main()
