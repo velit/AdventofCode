@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from itertools import pairwise
 
-from table import Table, Dimensions
+from common.table import Table, Dimensions
 
 
 def main(part2: bool = False) -> None:
