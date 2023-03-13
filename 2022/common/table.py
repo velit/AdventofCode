@@ -4,55 +4,10 @@ from collections.abc import Iterable
 from dataclasses import dataclass, InitVar, field
 from itertools import zip_longest
 from random import randrange
-from typing import TypeVar, Generic, Iterator, Protocol
+from typing import TypeVar, Generic, Iterator
 
-Coord = tuple[int, int]
-
-@dataclass(frozen=True)
-class Dimensions:
-    rows: int
-    cols: int
-
-    def __post_init__(self) -> None:
-        assert self.rows and self.cols, f"Zero dimensions aren't legal {self}"
-
-    @property
-    def area(self) -> int:
-        return self.rows * self.cols
-
-    @property
-    def min(self) -> int:
-        return min(self.rows, self.cols)
-
-    @property
-    def params(self) -> tuple[int, int]:
-        return self.rows, self.cols
-
-    def get_index(self, coord: Coord) -> int:
-        row, col = coord
-        if row < self.rows and col < self.cols:
-            return row * self.cols + col
-        raise IndexError(f"{coord=} out of range for {self=}")
-
-    def get_coord(self, index: int) -> Coord:
-        return index // self.cols, index % self.cols
-
-class HasDimensions(Protocol):
-
-    @property
-    def dimensions(self) -> Dimensions:
-        raise NotImplementedError
-
-class DimensionsMixin:
-
-    @property
-    def rows(self: HasDimensions) -> int:
-        return self.dimensions.rows
-
-    @property
-    def cols(self: HasDimensions) -> int:
-        return self.dimensions.cols
-
+from common.coord import Coord
+from common.dimensions import Dimensions, DimensionsMixin
 
 T = TypeVar('T')
 
@@ -83,10 +38,10 @@ class Table(Generic[T], DimensionsMixin):
             if len(self) != self.dimensions.area:
                 raise ValueError(f"Given {len(self)=} differs from {self.dimensions.area=} with no fillvalue")
 
-    def __getitem__(self, coord: Coord) -> T:
+    def __getitem__(self, coord: Coord | tuple[int, int]) -> T:
         return self._impl[self.get_index(coord)]
 
-    def __setitem__(self, coord: Coord, value: T) -> None:
+    def __setitem__(self, coord: Coord | tuple[int, int], value: T) -> None:
         self._impl[self.get_index(coord)] = value
 
     def __len__(self) -> int:
@@ -106,10 +61,10 @@ class Table(Generic[T], DimensionsMixin):
     def get_coord(self, index: int) -> Coord:
         return self.dimensions.get_coord(index)
 
-    def get_index(self, coord: Coord) -> int:
+    def get_index(self, coord: Coord | tuple[int, int]) -> int:
         return self.dimensions.get_index(coord)
 
-    def is_legal(self, coord: Coord) -> bool:
+    def is_legal(self, coord: Coord | tuple[int, int]) -> bool:
         y, x = coord
         return (0 <= y < self.rows) and (0 <= x < self.cols)
 
@@ -121,12 +76,25 @@ class Table(Generic[T], DimensionsMixin):
         for i, item in enumerate(self):
             yield self.get_coord(i), item
 
+    def row_by_row(self) -> Iterable[Iterable[T]]:
+        for row in range(self.rows):
+            row_start = row * self.cols
+            row_limit = row_start + self.cols
+            yield self._impl[row_start:row_limit]
+
+    def col_by_col(self) -> Iterable[Iterable[T]]:
+        for col in range(self.cols):
+            yield self._impl[col::self.rows]
+
     def coord_iter(self) -> Iterable[Coord]:
         for i, item in enumerate(self):
             yield self.get_coord(i)
 
     def random_coord(self) -> Coord:
-        return randrange(self.rows), randrange(self.cols)
+        return Coord(randrange(self.rows), randrange(self.cols))
 
     def __str__(self):
-        return "".join("\n" if x == 0 and y != 0 else "" + item for (y, x), item in self.enumerate())
+        max_size = max(len(str(item)) for item in self._impl)
+        if max_size > 1:
+            max_size += 1
+        return "\n".join("".join(f"{col: <{max_size}}" for col in row) for row in self.row_by_row())

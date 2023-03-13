@@ -2,16 +2,8 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from dataclasses import dataclass
 
-
-@dataclass(frozen=True)
-class Coord:
-    y: int = 0
-    x: int = 0
-
-    def __add__(self, other: Coord) -> Coord:
-        return Coord(self.y + other.y, self.x + other.x)
+from common.coord import Coord
 
 directions = {
     "D": Coord(+1, +0),

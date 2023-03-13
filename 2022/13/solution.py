@@ -3,6 +3,8 @@ import json
 from functools import cmp_to_key
 from itertools import zip_longest
 
+from common.util import grouper
+
 Packet = list[int | list]
 
 def pair(iterable):
@@ -33,7 +35,7 @@ def compare(left: Packet, right: Packet):
 with open("input.txt") as f:
     lines = f.read().splitlines()
 
-pairs = [(left, right) for left, right in pair(json.loads(line) for line in lines if line)]
+pairs = [(left, right) for left, right in grouper((json.loads(line) for line in lines if line), 2)]
 
 # part 1
 print(sum(i + 1 for i, (left, right) in enumerate(pairs) if compare(left, right) == -1))

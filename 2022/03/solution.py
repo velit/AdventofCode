@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from common.util import grouper
 
 with open("input.txt") as f:
     lines = f.read().splitlines()
@@ -10,9 +11,4 @@ def char_priority(char: str) -> int:
     return ord(char) - ord("a") + 1
 
 print(sum(char_priority((set(first) & set(second)).pop()) for (first, second) in rucksacks))
-
-def grouper(iterable, n):
-    args = [iter(iterable)] * n
-    return zip(*args, strict=True)
-
 print(sum(char_priority((set(first) & set(second) & set(third)).pop()) for (first, second, third) in grouper(lines, 3)))
