@@ -16,21 +16,20 @@ class Table(Generic[T], DimensionsMixin):
     """
     Mutable non-dynamic array with two-dimensional get- and setitem methods.
 
-    Iterating over the whole array gives all items directly by iterating the second
-    dimension tighter i.e. 'line-wise' if second dimension is x.
+    Iterating over the whole array gives all items directly by iterating the columns tighter i.e. 'line-by-line'.
 
-    Underlying implementation is a one-dimensional dynamic list with dynamic methods
-    disabled.
+    Underlying implementation is a one-dimensional dynamic list.
     """
-    dimensions: Dimensions
-    init_values: InitVar[Iterable[T]] = ()
-    fillvalue: InitVar[T | None]      = None
-    _impl: list[T]                    = field(init=False, repr=False)
 
-    def __post_init__(self, init_values: Iterable[T], fillvalue: T | None) -> None:
-        if fillvalue is not None:
+    dimensions:  Dimensions
+    init_values: InitVar[Iterable[T]] = ()
+    fill_value:  InitVar[T | None]    = None
+    _impl:       list[T]              = field(init=False, repr=False)
+
+    def __post_init__(self, init_values: Iterable[T], fill_value: T | None) -> None:
+        if fill_value is not None:
             self._impl: list[T] = list(value for _, value in zip_longest(range(self.dimensions.area), init_values,
-                                                                         fillvalue=fillvalue))
+                                                                         fillvalue=fill_value))
             if len(self) > self.dimensions.area:
                 raise ValueError(f"Given {len(self)=} exceed {self.dimensions.area=}.")
         else:
@@ -58,6 +57,22 @@ class Table(Generic[T], DimensionsMixin):
             return self.dimensions == o.dimensions and self._impl == o._impl
         return False
 
+    def __str__(self):
+        max_size = max(len(str(item)) for item in self._impl)
+        if max_size > 1:
+            max_size += 1
+        return "\n".join("".join(f"{col: <{max_size}}" for col in row) for row in self.row_by_row())
+
+    def str_row_inverted(self):
+        max_size = max(len(str(item)) for item in self._impl)
+        if max_size > 1:
+            max_size += 1
+        return "\n".join("".join(f"{col: <{max_size}}" for col in row) for row in self.row_by_row_reversed())
+
+    def increase_first_dimension(self, amount: int, fill_value: T | None = None) -> None:
+        self._impl.extend([fill_value] * self.cols * amount)
+        self.dimensions = Dimensions(self.rows + amount, self.cols)
+
     def get_coord(self, index: int) -> Coord:
         return self.dimensions.get_coord(index)
 
@@ -82,6 +97,12 @@ class Table(Generic[T], DimensionsMixin):
             row_limit = row_start + self.cols
             yield self._impl[row_start:row_limit]
 
+    def row_by_row_reversed(self) -> Iterable[Iterable[T]]:
+        for row in reversed(range(self.rows)):
+            row_start = row * self.cols
+            row_limit = row_start + self.cols
+            yield self._impl[row_start:row_limit]
+
     def col_by_col(self) -> Iterable[Iterable[T]]:
         for col in range(self.cols):
             yield self._impl[col::self.rows]
@@ -92,9 +113,3 @@ class Table(Generic[T], DimensionsMixin):
 
     def random_coord(self) -> Coord:
         return Coord(randrange(self.rows), randrange(self.cols))
-
-    def __str__(self):
-        max_size = max(len(str(item)) for item in self._impl)
-        if max_size > 1:
-            max_size += 1
-        return "\n".join("".join(f"{col: <{max_size}}" for col in row) for row in self.row_by_row())
