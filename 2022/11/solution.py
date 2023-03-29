@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from functools import partial
 from math import prod
 
+from common.util import all_after
+
 
 @dataclass(eq=False)
 class Monkeh:
@@ -15,19 +17,15 @@ class Monkeh:
     true_throw: int
     false_throw: int
 
-def after(content: str, separator: str) -> str:
-    """Return the content after the given separator."""
-    return content.partition(separator)[2]
-
 def parse_monkeh(lines: list[str], i: int) -> Monkeh:
     # monkey_index = int(after(lines[i].replace(":", ""), "Monkey ")
-    items        = [int(item) for item in after(lines[i + 1], "items: ").split(", ")]
+    items        = [int(item) for item in all_after(lines[i + 1], "items: ").split(", ")]
     op_tokens    = lines[i + 2].split()
     operator_    = operator.mul if op_tokens[4] == "*" else operator.add
     op_value     = int(op_tokens[5]) if op_tokens[5] != "old" else "old"
-    divisible_by = int(after(lines[i + 3], "divisible by "))
-    true_throw   = int(after(lines[i + 4], "monkey "))
-    false_throw  = int(after(lines[i + 5], "monkey "))
+    divisible_by = int(all_after(lines[i + 3], "divisible by "))
+    true_throw   = int(all_after(lines[i + 4], "monkey "))
+    false_throw  = int(all_after(lines[i + 5], "monkey "))
     if op_value == "old":
         operation = partial(pow, exp=2)
     else:
