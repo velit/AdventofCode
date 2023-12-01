@@ -8,7 +8,7 @@ do
     DAY=$(printf "%02d" $i)
     mkdir -p $1/$DAY
     cp -n proto/* $1/$DAY/
-    aocd $i $1 > input.txt
-    cp -n input.txt $1/$DAY/
+    cd $1/$DAY
+    aoc download --year $1 --day $i
+    cd ../..
 done
-rm input.txt
